@@ -29,8 +29,8 @@ struct ItemCarrito {
 
 struct Comentario {
     int id;
-    int idUsuario;
-    int idProducto;
+    string producto;
+    string usuario;
     string comentario;
     string fecha;
 };
@@ -97,23 +97,30 @@ vector<Producto> cargarProductos(const string &nombreArchivo) {
 vector<Comentario> cargarComentarios(const string &nombreArchivo) {
     vector<Comentario> comentarios;
     ifstream archivo(nombreArchivo.c_str());
+    if (!archivo) return comentarios;
     string linea;
-    getline(archivo, linea);
+    getline(archivo, linea); 
 
     while (getline(archivo, linea)) {
+        if (linea.find_first_not_of(" \t\r\n") == string::npos) continue;
+        vector<string> tokens;
+        string token;
         stringstream ss(linea);
+        while (getline(ss, token, ',')) tokens.push_back(token);
+
+        if (tokens.size() < 5) continue;
+
         Comentario c;
-        string idStr, idU, idP;
-        getline(ss, idStr, ',');
-        getline(ss, idU, ',');
-        getline(ss, idP, ',');
-        getline(ss, c.comentario, ',');
-        getline(ss, c.fecha, ',');
-        c.id = convertirEntero(idStr);
-        c.idUsuario = convertirEntero(idU);
-        c.idProducto = convertirEntero(idP);
+        c.id = convertirEntero(tokens[0]);
+        c.producto = tokens[1];
+        c.usuario = tokens[2];
+        string texto = tokens[3];
+        for (size_t i = 4; i + 1 < tokens.size(); ++i) texto += "," + tokens[i];
+        c.comentario = texto;
+        c.fecha = tokens.back();
         comentarios.push_back(c);
     }
+    archivo.close();
     return comentarios;
 }
 
@@ -188,12 +195,11 @@ void mostrarCarrito(const vector<ItemCarrito> &carrito) {
 }
 
 
-
 void reporteProductosMenorStock(const vector<Producto> &productos) {
     vector<Producto> copia = productos;
 
-    for (size_t i = 0; i < copia.size(); i++) {
-        for (size_t j = i + 1; j < copia.size(); j++) {
+    for (size_t i = 0; i < copia.size(); ++i) {
+        for (size_t j = i + 1; j < copia.size(); ++j) {
             if (copia[j].stock < copia[i].stock) {
                 Producto temp = copia[i];
                 copia[i] = copia[j];
@@ -201,47 +207,42 @@ void reporteProductosMenorStock(const vector<Producto> &productos) {
             }
         }
     }
-
     cout << "\n=== 5 PRODUCTOS CON MENOR STOCK ===\n";
-    for (size_t i = 0; i < 5 && i < copia.size(); i++) {
-        cout << copia[i].id << " | " << copia[i].nombre
-             << " | Stock: " << copia[i].stock << "\n";
+    cout << "idProducto | nombre | stock\n";
+    for (size_t i = 0; i < 5 && i < copia.size(); ++i) {
+        cout << copia[i].id << " | " << copia[i].nombre << " | " << copia[i].stock << "\n";
     }
 }
+
 
 void reporteComentariosPorFecha(const vector<Comentario> &comentarios) {
-    string fecha;
+    string fechaBuscada;
     cout << "Ingrese la fecha (YYYY-MM-DD): ";
-    cin >> fecha;
-
+    cin >> fechaBuscada;
     int contador = 0;
-    for (size_t i = 0; i < comentarios.size(); i++) {
-        if (comentarios[i].fecha == fecha) {
+    for (size_t i = 0; i < comentarios.size(); ++i)
+        if (comentarios[i].fecha == fechaBuscada)
             contador++;
-        }
-    }
-
-    cout << "\nFecha: " << fecha
-         << " | Numero de comentarios: " << contador << "\n";
+    cout << "\n=== COMENTARIOS POR FECHA ===\n";
+    cout << "Fecha: " << fechaBuscada << " | Cantidad: " << contador << "\n";
 }
+
 
 void reportePrecioMaxMin(const vector<Producto> &productos) {
-    if (productos.size() == 0) return;
-
-    double maximo = productos[0].precio;
-    double minimo = productos[0].precio;
-
-    for (size_t i = 1; i < productos.size(); i++) {
-        if (productos[i].precio > maximo) maximo = productos[i].precio;
-        if (productos[i].precio < minimo) minimo = productos[i].precio;
+    if (productos.empty()) {
+        cout << "No hay productos.\n";
+        return;
     }
-
-    cout << "\n=== PRECIO MAXIMO Y MINIMO ===\n";
-    cout << "Precio maximo: $" << maximo << "\n";
-    cout << "Precio minimo: $" << minimo << "\n";
+    double maxP = productos[0].precio;
+    double minP = productos[0].precio;
+    for (size_t i = 1; i < productos.size(); ++i) {
+        if (productos[i].precio > maxP) maxP = productos[i].precio;
+        if (productos[i].precio < minP) minP = productos[i].precio;
+    }
+    cout << "\n=== PRECIO MÁXIMO Y MÍNIMO ===\n";
+    cout << "Precio máximo: $" << maxP << "\n";
+    cout << "Precio mínimo: $" << minP << "\n";
 }
-
-
 
 int main() {
     vector<Usuario> usuarios = cargarUsuarios("Usuarios.txt");
@@ -250,20 +251,20 @@ int main() {
     vector<ItemCarrito> carrito;
 
     string correo, contrasena;
-    cout << "Correo electronico: ";
+    cout << "Correo electrónico: ";
     getline(cin, correo);
-    cout << "Contrasena: ";
+    cout << "Contraseña: ";
     getline(cin, contrasena);
 
     Usuario *usuarioActual = iniciarSesion(usuarios, correo, contrasena);
     if (!usuarioActual) {
-        cout << "Usuario o contrasena invalidos.\n";
+        cout << "Usuario o contraseña inválidos.\n";
         return 0;
     }
 
     int opcion;
     do {
-        cout << "\n=== MENU PRINCIPAL ===\n";
+        cout << "\n=== MENÚ PRINCIPAL ===\n";
         cout << "1. Listar productos con stock menor a 15\n";
         cout << "2. Listar todos los usuarios\n";
         cout << "3. Agregar producto al carrito\n";
@@ -272,7 +273,7 @@ int main() {
         cout << "6. Ver carrito guardado (archivo)\n";
         cout << "7. Reportes\n";
         cout << "0. Salir\n";
-        cout << "Seleccione una opcion: ";
+        cout << "Seleccione una opción: ";
         cin >> opcion;
         cin.ignore();
 
@@ -292,7 +293,7 @@ int main() {
             for (size_t i = 0; i < usuarios.size(); ++i)
                 cout << usuarios[i].id << " | " << usuarios[i].nombre
                      << " | " << usuarios[i].correo
-                     << " | Direccion: " << usuarios[i].direccion
+                     << " | Dirección: " << usuarios[i].direccion
                      << " | Pago: " << usuarios[i].metodoPago << "\n";
             break;
         }
@@ -330,31 +331,41 @@ int main() {
         case 6:
             mostrarCarritoArchivo();
             break;
-
         case 7: {
             int op;
-            cout << "\n=== MENU DE REPORTES ===\n";
-            cout << "1. 5 productos con menor stock\n";
-            cout << "2. Cantidad de comentarios por fecha\n";
-            cout << "3. Precio maximo y minimo\n";
-            cout << "Seleccione una opcion: ";
-            cin >> op;
+            do {
+                cout << "\n=== MENÚ DE REPORTES ===\n";
+                cout << "1. 5 productos con menor stock\n";
+                cout << "2. Cantidad de comentarios por fecha\n";
+                cout << "3. Precio máximo y mínimo\n";
+                cout << "0. Volver\n";
+                cout << "Seleccione una opción: ";
+                cin >> op;
+                cin.ignore();
 
-            switch (op) {
-                case 1: reporteProductosMenorStock(productos); break;
-                case 2: reporteComentariosPorFecha(comentarios); break;
-                case 3: reportePrecioMaxMin(productos); break;
-                default: cout << "Opcion no valida.\n";
-            }
+                switch (op) {
+                case 1:
+                    reporteProductosMenorStock(productos);
+                    break;
+                case 2:
+                    reporteComentariosPorFecha(comentarios);
+                    break;
+                case 3:
+                    reportePrecioMaxMin(productos);
+                    break;
+                case 0:
+                    break;
+                default:
+                    cout << "Opción no válida.\n";
+                }
+            } while (op != 0);
             break;
         }
-
         case 0:
             cout << "Saliendo del sistema...\n";
             break;
-
         default:
-            cout << "Opcion no valida.\n";
+            cout << "Opción no válida.\n";
         }
     } while (opcion != 0);
 
