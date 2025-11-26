@@ -240,8 +240,8 @@ void reportePrecioMaxMin(const vector<Producto> &productos) {
         if (productos[i].precio < minP) minP = productos[i].precio;
     }
     cout << "\n=== PRECIO MÁXIMO Y MÍNIMO ===\n";
-    cout << "Precio máximo: $" << maxP << "\n";
-    cout << "Precio mínimo: $" << minP << "\n";
+    cout << "Precio maximo: $" << maxP << "\n";
+    cout << "Precio minimo: $" << minP << "\n";
 }
 
 int main() {
@@ -251,20 +251,20 @@ int main() {
     vector<ItemCarrito> carrito;
 
     string correo, contrasena;
-    cout << "Correo electrónico: ";
+    cout << "Correo electronico: ";
     getline(cin, correo);
-    cout << "Contraseña: ";
+    cout << "Contrasena: ";
     getline(cin, contrasena);
 
     Usuario *usuarioActual = iniciarSesion(usuarios, correo, contrasena);
     if (!usuarioActual) {
-        cout << "Usuario o contraseña inválidos.\n";
+        cout << "Usuario o contrasena invalidos.\n";
         return 0;
     }
 
     int opcion;
     do {
-        cout << "\n=== MENÚ PRINCIPAL ===\n";
+        cout << "\n=== MENU PRINCIPAL ===\n";
         cout << "1. Listar productos con stock menor a 15\n";
         cout << "2. Listar todos los usuarios\n";
         cout << "3. Agregar producto al carrito\n";
@@ -273,7 +273,7 @@ int main() {
         cout << "6. Ver carrito guardado (archivo)\n";
         cout << "7. Reportes\n";
         cout << "0. Salir\n";
-        cout << "Seleccione una opción: ";
+        cout << "Seleccione una opcion: ";
         cin >> opcion;
         cin.ignore();
 
@@ -334,12 +334,12 @@ int main() {
         case 7: {
             int op;
             do {
-                cout << "\n=== MENÚ DE REPORTES ===\n";
+                cout << "\n=== MENU DE REPORTES ===\n";
                 cout << "1. 5 productos con menor stock\n";
                 cout << "2. Cantidad de comentarios por fecha\n";
-                cout << "3. Precio máximo y mínimo\n";
+                cout << "3. Precio maximo y minimo\n";
                 cout << "0. Volver\n";
-                cout << "Seleccione una opción: ";
+                cout << "Seleccione una opcion: ";
                 cin >> op;
                 cin.ignore();
 
@@ -356,7 +356,7 @@ int main() {
                 case 0:
                     break;
                 default:
-                    cout << "Opción no válida.\n";
+                    cout << "Opción no valida.\n";
                 }
             } while (op != 0);
             break;
@@ -365,7 +365,7 @@ int main() {
             cout << "Saliendo del sistema...\n";
             break;
         default:
-            cout << "Opción no válida.\n";
+            cout << "Opción no valida.\n";
         }
     } while (opcion != 0);
 
